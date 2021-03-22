@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Wasabi dashboard</title>
+        <meta name="viewport" content="width=device-width, minimum-scale=0.8, initial-scale=0.8">
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    	<script src="https://www.chartjs.org/dist/2.9.4/Chart.min.js"></script>
+        <script src="https://google.github.io/palette.js/palette.js"></script>
+        <script src="./js/chart-donut-text.js"></script>
+        <style>
+        h1 {
+            margin: 12px 0;
+            text-align: center;
+        }
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .chart {
+            width: 33%;
+            margin: auto;
+            min-width: 300px;
+            max-width: 400px;
+            margin-top: 8px;
+            margin-bottom: 8px;
+        }
+        .chart.small {
+            max-width: 360px;
+        }
+        </style>
+    </head>
+    <body style="padding: 10px;">
+        <h1>Wasabi dashboard</h1>
+        <div class="chart-container">
+            <div class="chart">
+                <canvas id="chart0" width="100%" height="100%"></canvas>
+            </div>
+            <div class="chart">
+                <canvas id="chart1" width="100%" height="100%"></canvas>
+            </div>
+            <div class="chart">
+                <canvas id="chart2" width="100%" height="100%"></canvas>
+            </div>
+        </div>
+        <div class="chart-container">
+            <div class="chart small">
+                <canvas id="chart3" width="100%" height="100%"></canvas>
+            </div>
+        </div>
+        <script src="./js/dashboard.js"></script>
+    </body>
+</html>

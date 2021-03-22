@@ -1,0 +1,4 @@
+<Files "access_key.json">
+  Order Allow,Deny
+  Deny from all
+</Files>
