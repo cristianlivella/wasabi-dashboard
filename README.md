@@ -26,4 +26,4 @@ Basic dashboard to monitor the used, deleted and padding storage in [Wasabi Clou
 6. (extra) if you have some buckets with long names, you can set an alias for them in `config.php`, and it will be displayed instead of the name when you hover on the charts.
 
 ## Disclaimer
-WASABI is trademarks of Wasabi Technologies, Inc. This project is not related to Wasabi Technologies, Inc and it's provided without warranty of any kind under the terms of the [MIT License](https://github.com/cristianlivella/wasabi-dashboard/blob/master/LICENSE).
+WASABI is trademark of Wasabi Technologies, Inc. This project is not related to Wasabi Technologies, Inc and it's provided without warranty of any kind under the terms of the [MIT License](https://github.com/cristianlivella/wasabi-dashboard/blob/master/LICENSE).
