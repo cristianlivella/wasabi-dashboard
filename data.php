@@ -25,7 +25,7 @@ if (!isset($accessKey['Expires']) || strtotime($accessKey['Expires']) < time()) 
 }
 
 $s3 = new Aws\S3\S3Client([
-	'region'  => 'us-east-1',
+    'region'  => 'us-east-1',
     'version' => '2006-03-01',
     'endpoint' => 'https://s3.wasabisys.com/',
 	'credentials' => [
@@ -38,26 +38,33 @@ $s3 = new Aws\S3\S3Client([
 $buckets = $s3->listBuckets();
 
 $bucketsUtilization = [];
-$totalUtilization = ['size' => 0, 'padding' => 0, 'deleted' => 0];
+$totalUtilizationHistory = [];
+for ($i = 0; $i < 28; $i++) {
+    $totalUtilizationHistory[$i] = ['size' => 0, 'padding' => 0, 'deleted' => 0];
+}
 
 // Foreach bucket, retrieve storage utilization
 foreach ($buckets['Buckets'] as $bucket) {
     $name = $bucket['Name'];
     $additionalHeaders = ['x-wasabi-authorization: ' . $accessKey['AccessKeyId'] . ':' . $accessKey['SecretAccessKey']];
     $res = customCurl('https://billing-service.wasabisys.com/v1/bucket/by-name/' . $name . '/utilization', $additionalHeaders);
-    $utilization = json_decode($res, true)[0];
+    $utilization = json_decode($res, true);
     $bucketsUtilization[] = [
         'name' => getBucketName($name),
-        'size' => $utilization['PaddedStorageSizeBytes'],
-        'padding' => $utilization['PaddedStorageSizeBytes'] - $utilization['RawStorageSizeBytes'],
-        'deleted' => $utilization['DeletedStorageSizeBytes']
+        'size' => $utilization[0]['PaddedStorageSizeBytes'],
+        'padding' => $utilization[0]['PaddedStorageSizeBytes'] - $utilization[0]['RawStorageSizeBytes'],
+        'deleted' => $utilization[0]['DeletedStorageSizeBytes']
     ];
-    $totalUtilization['size'] += $utilization['PaddedStorageSizeBytes'];
-    $totalUtilization['padding'] += $utilization['PaddedStorageSizeBytes'] - $utilization['RawStorageSizeBytes'];
-    $totalUtilization['deleted'] += $utilization['DeletedStorageSizeBytes'];
+    for ($i = 0; $i < 28; $i++) {
+        if (!isset($utilization[$i]))
+            break;
+        $totalUtilizationHistory[$i]['size'] += $utilization[$i]['PaddedStorageSizeBytes'];
+        $totalUtilizationHistory[$i]['padding'] += $utilization[$i]['PaddedStorageSizeBytes'] - $utilization[$i]['RawStorageSizeBytes'];
+        $totalUtilizationHistory[$i]['deleted'] += $utilization[$i]['DeletedStorageSizeBytes'];
+    }
 }
 
 echo json_encode([
     'buckets' => $bucketsUtilization,
-    'total' => $totalUtilization
+    'total' => $totalUtilizationHistory
 ]);

@@ -4,14 +4,16 @@ const getChartConfig = (title, type) => {
         data: {
             datasets: [{
                 data: [-1],
+                label: 'Loading...',
             }],
             labels: ['Loading...'],
         },
         options: {
             cutoutPercentage: type === 'doughnut' ? 40 : 0,
             responsive: true,
+            maintainAspectRatio: type === 'line' ? false : true,
             legend: {
-                display: false,
+                display: type === 'line',
             },
             title: {
                 display: true,
@@ -25,23 +27,48 @@ const getChartConfig = (title, type) => {
                         if (data.datasets[0].data[tooltipItem.index] < 0) {
                             return 'Loading...';
                         }
+                        if (type === 'line') {
+                            return data.datasets[tooltipItem.datasetIndex].label + ': ' + formatBytes(tooltipItem.value)
+                        }
                         return data.labels[tooltipItem.index] + ': ' + formatBytes(data.datasets[0].data[tooltipItem.index])
                     }
-                }
+                },
+                mode: 'index',
+                intersect: true,
+                position: 'nearest',
             },
             elements: {
                 center: {
                     text: type === 'doughnut' ? 'Loading...' : '',
                     color: '#212529',
                 }
-            }
+            },
+            scales: {
+                yAxes: type === 'line' ? [
+                    {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        id: 'y-axis-1',
+                        ticks: {
+                            beginAtZero: true,
+                            callback: function(value) {
+                                if (value < 1) {
+                                    return formatBytes(0);
+                                }
+                                return formatBytes(value);
+                            },
+                        },
+                        scaleLabel: {
+                            display: true,
+                            labelString: ''
+                        }
+                    }
+                ] : []
+            },
         },
     };
 }
-
-const charts = ['Used storage by buckets', 'Deleted storage by buckets', 'Padding data by buckets', 'Deleted storage and padding'].map((title, i) => {
-    return new Chart(document.getElementById('chart' + i).getContext('2d'), getChartConfig(title, (i < 3 ? 'doughnut' : 'pie')))
-})
 
 const generateColors = (num) => {
     const scheme = palette.listSchemes('mpn65')[0];
@@ -76,6 +103,30 @@ const getData = (buckets, property) => {
     })
 }
 
+const getLineChartDatasets = (history) => {
+    const colors = generateColors(3)
+    const labels = ['Active storage', 'Deleted storage', 'Padding data'];
+    return ['size', 'deleted', 'padding'].map((property, i) => {
+        return {
+            label: labels[i],
+            data: history.map(day => {
+                return day[property]
+            }).reverse(),
+            borderColor: [colors[i]],
+            backgroundColor: colors[i],
+            fill: false,
+        }
+    })
+}
+
+const getLastDays = (n) => {
+    return [...Array(n)].map((_, i) => {
+        const d = new Date()
+        d.setDate(d.getDate() - i)
+        return d.getDate()  + "/" + (d.getMonth()+1)
+    }).reverse();
+}
+
 const formatBytes = (bytes, decimals = 2) => {
     // Source: https://stackoverflow.com/a/18650828/6268326
     if (bytes === 0) return '0 Bytes';
@@ -86,40 +137,71 @@ const formatBytes = (bytes, decimals = 2) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
 }
 
+
+const charts = [
+    {
+        title: 'Used storage by buckets',
+        type: 'doughnut',
+    },
+    {
+        title: 'Deleted storage by buckets',
+        type: 'doughnut',
+    },
+    {
+        title: 'Padding data by buckets',
+        type: 'doughnut',
+    },
+    {
+        title: 'Deleted storage and padding',
+        type: 'pie',
+    },
+    {
+        title: 'Storage usage history',
+        type: 'line',
+    }
+].map((chart, i) => {
+    return new Chart(document.getElementById('chart' + i).getContext('2d'), getChartConfig(chart.title, chart.type))
+})
+
 const updateData = () => {
     fetch('data.php').then(response => response.json()).then(data => {
-        let {buckets, total} = data
+        let {buckets, total} = data;
+        const totalToday = total[0];
 
-        const colors = generateColors(buckets.length)
-        sortByProperty(buckets, 'size')
+        const colors = generateColors(buckets.length);
+        sortByProperty(buckets, 'size');
         buckets = buckets.map((bucket, i) => {
             return {...bucket, color: colors[i]}
         })
 
         charts[0].config.data.labels = getLabels(buckets);
         charts[0].config.data.datasets[0].data = getData(buckets, 'size');
-        charts[0].config.data.datasets[0].backgroundColor = getBucketsColors(buckets)
-        charts[0].config.options.elements.center.text = formatBytes(total.size)
-        charts[0].update()
+        charts[0].config.data.datasets[0].backgroundColor = getBucketsColors(buckets);
+        charts[0].config.options.elements.center.text = formatBytes(totalToday.size);
+        charts[0].update();
 
         sortByProperty(buckets, 'deleted')
         charts[1].config.data.labels = getLabels(buckets);
         charts[1].config.data.datasets[0].data = getData(buckets, 'deleted');
-        charts[1].config.data.datasets[0].backgroundColor = getBucketsColors(buckets)
-        charts[1].config.options.elements.center.text = formatBytes(total.deleted)
-        charts[1].update()
+        charts[1].config.data.datasets[0].backgroundColor = getBucketsColors(buckets);
+        charts[1].config.options.elements.center.text = formatBytes(totalToday.deleted);
+        charts[1].update();
 
         sortByProperty(buckets, 'padding')
         charts[2].config.data.labels = getLabels(buckets);
         charts[2].config.data.datasets[0].data = getData(buckets, 'padding');
-        charts[2].config.data.datasets[0].backgroundColor = getBucketsColors(buckets)
-        charts[2].config.options.elements.center.text = formatBytes(total.padding)
-        charts[2].update()
+        charts[2].config.data.datasets[0].backgroundColor = getBucketsColors(buckets);
+        charts[2].config.options.elements.center.text = formatBytes(totalToday.padding);
+        charts[2].update();
 
-        charts[3].config.data.labels = ['Active storage', 'Deleted storage', 'Padding data']
-        charts[3].config.data.datasets[0].data = [total.size - total.deleted - total.padding, total.deleted, total.padding]
-        charts[3].config.data.datasets[0].backgroundColor = generateColors(3)
-        charts[3].update()
+        charts[3].config.data.labels = ['Active storage', 'Deleted storage', 'Padding data'];
+        charts[3].config.data.datasets[0].data = [totalToday.size - totalToday.deleted - totalToday.padding, totalToday.deleted, totalToday.padding];
+        charts[3].config.data.datasets[0].backgroundColor = generateColors(3);
+        charts[3].update();
+
+        charts[4].config.data.datasets = getLineChartDatasets(total);
+        charts[4].config.data.labels = getLastDays(total.length);
+        charts[4].update();
     });
 }
 
