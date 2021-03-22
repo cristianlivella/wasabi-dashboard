@@ -48,13 +48,13 @@ foreach ($buckets['Buckets'] as $bucket) {
     $utilization = json_decode($res, true)[0];
     $bucketsUtilization[] = [
         'name' => getBucketName($name),
-        'size' => $utilization['PaddedStorageSizeBytes'] * 8.123,
-        'padding' => ($utilization['PaddedStorageSizeBytes'] - $utilization['RawStorageSizeBytes']) * 1200,
-        'deleted' => $utilization['DeletedStorageSizeBytes'] * 200
+        'size' => $utilization['PaddedStorageSizeBytes'],
+        'padding' => $utilization['PaddedStorageSizeBytes'] - $utilization['RawStorageSizeBytes'],
+        'deleted' => $utilization['DeletedStorageSizeBytes']
     ];
-    $totalUtilization['size'] += $utilization['PaddedStorageSizeBytes'] * 8.123;
-    $totalUtilization['padding'] += ($utilization['PaddedStorageSizeBytes'] - $utilization['RawStorageSizeBytes']) * 1200;
-    $totalUtilization['deleted'] += $utilization['DeletedStorageSizeBytes'] * 200;
+    $totalUtilization['size'] += $utilization['PaddedStorageSizeBytes'];
+    $totalUtilization['padding'] += $utilization['PaddedStorageSizeBytes'] - $utilization['RawStorageSizeBytes'];
+    $totalUtilization['deleted'] += $utilization['DeletedStorageSizeBytes'];
 }
 
 echo json_encode([
