@@ -1,6 +1,6 @@
 # Wasabi dashboard
 Basic dashboard to monitor the used, deleted and padding storage in [Wasabi Cloud](https://wasabi.com/).
-![Screenshot](https://i.imgur.com/0ZekSoS.png)
+![Screenshot](https://i.imgur.com/N07Ed4y.png)
 
 ## Installation and configuration
 1. Log into your Wasabi account and create a new policy as the following:
