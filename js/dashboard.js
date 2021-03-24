@@ -119,16 +119,15 @@ const getLineChartDatasets = (history) => {
     })
 }
 
-const getLastDays = (n) => {
-    return [...Array(n)].map((_, i) => {
-        const d = new Date()
-        d.setDate(d.getDate() - i)
-        return d.getDate()  + "/" + (d.getMonth()+1)
+const getDaysList = (history) => {
+    return history.map(day => {
+        return day.date;
     }).reverse();
 }
 
 const formatBytes = (bytes, decimals = 2) => {
     // Source: https://stackoverflow.com/a/18650828/6268326
+    bytes = parseInt(bytes)
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
     const dm = decimals < 0 ? 0 : decimals;
@@ -200,7 +199,7 @@ const updateData = () => {
         charts[3].update();
 
         charts[4].config.data.datasets = getLineChartDatasets(total);
-        charts[4].config.data.labels = getLastDays(total.length);
+        charts[4].config.data.labels = getDaysList(total);
         charts[4].update();
     });
 }
