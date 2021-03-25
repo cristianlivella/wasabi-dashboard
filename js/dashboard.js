@@ -70,8 +70,10 @@ const getChartConfig = (title, type) => {
     };
 }
 
-const generateColors = (num) => {
-    const scheme = palette.listSchemes('mpn65')[0];
+const storageUsagePalette = ['#117733', '#66a61e', '#ff0029', '#377eb8', '#ff7f00'];
+
+const generateColors = (num, paletteName = 'mpn65') => {
+    const scheme = palette.listSchemes(paletteName)[0];
     return scheme.apply(scheme, [num]).reverse().map(color => {
         return '#' + color;
     })
@@ -104,16 +106,16 @@ const getData = (buckets, property) => {
 }
 
 const getLineChartDatasets = (history) => {
-    const colors = generateColors(4)
-    const labels = ['Billable storage', 'Active storage', 'Deleted storage', 'Padding data'];
-    return ['billable', 'size', 'deleted', 'padding'].map((property, i) => {
+    const colors = storageUsagePalette
+    const labels = ['Billable storage', 'Active storage', 'Deleted storage', 'Padding data', 'Metadata'];
+    return ['billable', 'size', 'deleted', 'padding', 'metadata'].map((property, i) => {
         return {
             label: labels[i],
             data: history.map(day => {
                 if (property === 'billable')
-                    return day['size'] + day['deleted'];
+                    return day['size'] + day['deleted'] + day['padding'];
                 else if (property === 'size')
-                    return day['size'] - day['padding'];
+                    return day['size'] - day['padding'] - day['metadata'];
                 return day[property]
             }).reverse(),
             borderColor: [colors[i]],
@@ -197,10 +199,10 @@ const updateData = () => {
         charts[2].config.options.elements.center.text = formatBytes(totalToday.padding);
         charts[2].update();
 
-        charts[3].config.data.labels = ['Active storage', 'Deleted storage', 'Padding data'];
-        charts[3].config.data.datasets[0].data = [totalToday.size - totalToday.padding, totalToday.deleted, totalToday.padding];
-        charts[3].config.data.datasets[0].backgroundColor = generateColors(3);
-        charts[3].config.options.elements.center.text = formatBytes(totalToday.size + totalToday.deleted);
+        charts[3].config.data.labels = ['Active storage', 'Deleted storage', 'Padding data', 'Metadata'].reverse();
+        charts[3].config.data.datasets[0].data = [totalToday.size - totalToday.metadata, totalToday.deleted, totalToday.padding, totalToday.metadata].reverse();
+        charts[3].config.data.datasets[0].backgroundColor = storageUsagePalette.slice(1).reverse();
+        charts[3].config.options.elements.center.text = formatBytes(totalToday.size + totalToday.deleted + totalToday.padding);
         charts[3].update();
 
         charts[4].config.data.datasets = getLineChartDatasets(total);
