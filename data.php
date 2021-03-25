@@ -40,7 +40,7 @@ $buckets = $s3->listBuckets();
 $bucketsUtilization = [];
 $totalUtilizationHistory = [];
 for ($i = 0; $i < CHART_HISTORY_DAYS; $i++) {
-    $totalUtilizationHistory[$i] = ['size' => 0, 'padding' => 0, 'deleted' => 0];
+    $totalUtilizationHistory[date('d/m', strtotime('-' . $i . ' days'))] = ['size' => 0, 'padding' => 0, 'deleted' => 0, 'date' => date('d/m', strtotime('-' . $i . ' days'))];
 }
 
 // Foreach bucket, retrieve storage utilization
@@ -58,18 +58,14 @@ foreach ($buckets['Buckets'] as $bucket) {
     for ($i = 0; $i < CHART_HISTORY_DAYS; $i++) {
         if (!isset($utilization[$i]))
             break;
-        $totalUtilizationHistory[$i]['size'] += $utilization[$i]['PaddedStorageSizeBytes'];
-        $totalUtilizationHistory[$i]['padding'] += $utilization[$i]['PaddedStorageSizeBytes'] - $utilization[$i]['RawStorageSizeBytes'];
-        $totalUtilizationHistory[$i]['deleted'] += $utilization[$i]['DeletedStorageSizeBytes'];
-        $totalUtilizationHistory[$i]['date'] = date('d/m', strtotime($utilization[$i]['EndTime']));
+        $date = date('d/m', strtotime($utilization[$i]['EndTime']));
+        $totalUtilizationHistory[$date]['size'] += $utilization[$i]['PaddedStorageSizeBytes'];
+        $totalUtilizationHistory[$date]['padding'] += $utilization[$i]['PaddedStorageSizeBytes'] - $utilization[$i]['RawStorageSizeBytes'];
+        $totalUtilizationHistory[$date]['deleted'] += $utilization[$i]['DeletedStorageSizeBytes'];
     }
 }
 
-$totalUtilizationHistory = array_filter($totalUtilizationHistory, function($day) {
-    return isset($day['date']);
-});
-
 echo json_encode([
     'buckets' => $bucketsUtilization,
-    'total' => $totalUtilizationHistory
+    'total' => array_values($totalUtilizationHistory)
 ]);

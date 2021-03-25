@@ -104,12 +104,16 @@ const getData = (buckets, property) => {
 }
 
 const getLineChartDatasets = (history) => {
-    const colors = generateColors(3)
-    const labels = ['Active storage', 'Deleted storage', 'Padding data'];
-    return ['size', 'deleted', 'padding'].map((property, i) => {
+    const colors = generateColors(4)
+    const labels = ['Billable storage', 'Active storage', 'Deleted storage', 'Padding data'];
+    return ['billable', 'size', 'deleted', 'padding'].map((property, i) => {
         return {
             label: labels[i],
             data: history.map(day => {
+                if (property === 'billable')
+                    return day['size'] + day['deleted'];
+                else if (property === 'size')
+                    return day['size'] - day['padding'];
                 return day[property]
             }).reverse(),
             borderColor: [colors[i]],
@@ -139,7 +143,7 @@ const formatBytes = (bytes, decimals = 2) => {
 
 const charts = [
     {
-        title: 'Used storage by buckets',
+        title: 'Active storage by buckets',
         type: 'doughnut',
     },
     {
@@ -151,8 +155,8 @@ const charts = [
         type: 'doughnut',
     },
     {
-        title: 'Deleted storage and padding',
-        type: 'pie',
+        title: 'Billable storage usage',
+        type: 'doughnut',
     },
     {
         title: 'Storage usage history',
@@ -194,8 +198,9 @@ const updateData = () => {
         charts[2].update();
 
         charts[3].config.data.labels = ['Active storage', 'Deleted storage', 'Padding data'];
-        charts[3].config.data.datasets[0].data = [totalToday.size - totalToday.deleted - totalToday.padding, totalToday.deleted, totalToday.padding];
+        charts[3].config.data.datasets[0].data = [totalToday.size - totalToday.padding, totalToday.deleted, totalToday.padding];
         charts[3].config.data.datasets[0].backgroundColor = generateColors(3);
+        charts[3].config.options.elements.center.text = formatBytes(totalToday.size + totalToday.deleted);
         charts[3].update();
 
         charts[4].config.data.datasets = getLineChartDatasets(total);
