@@ -115,7 +115,7 @@ const getLineChartDatasets = (history) => {
                 if (property === 'billable')
                     return day['size'] + day['deleted'] + day['padding'];
                 else if (property === 'size')
-                    return day['size'] - day['padding'] - day['metadata'];
+                    return day['size'] - day['metadata'];
                 return day[property]
             }).reverse(),
             borderColor: [colors[i]],
