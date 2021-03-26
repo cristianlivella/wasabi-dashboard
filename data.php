@@ -66,6 +66,11 @@ foreach ($buckets['Buckets'] as $bucket) {
     }
 }
 
+$today = date('d/m');
+if ($totalUtilizationHistory[$today]['size'] === 0) {
+    unset($totalUtilizationHistory[$today]);
+}
+
 echo json_encode([
     'buckets' => $bucketsUtilization,
     'total' => array_values($totalUtilizationHistory)
