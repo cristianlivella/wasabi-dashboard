@@ -56,9 +56,8 @@ foreach ($buckets['Buckets'] as $bucket) {
         'deleted' => $utilization[0]['DeletedStorageSizeBytes']
     ];
     for ($i = 0; $i < CHART_HISTORY_DAYS; $i++) {
-        if (!isset($utilization[$i]))
+        if (!isset($utilization[$i]) || !($date = date('d/m', strtotime($utilization[$i]['EndTime']))) || !isset($totalUtilizationHistory[$date]))
             break;
-        $date = date('d/m', strtotime($utilization[$i]['EndTime']));
         $totalUtilizationHistory[$date]['size'] += $utilization[$i]['RawStorageSizeBytes'] + $utilization[$i]['MetadataStorageSizeBytes'];
         $totalUtilizationHistory[$date]['padding'] += $utilization[$i]['PaddedStorageSizeBytes'] - $utilization[$i]['RawStorageSizeBytes'];
         $totalUtilizationHistory[$date]['deleted'] += $utilization[$i]['DeletedStorageSizeBytes'];
